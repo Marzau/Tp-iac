@@ -1,0 +1,26 @@
+- name: Configuration avancée de WordPress avec Ansible
+  hosts: all
+  become: true
+  tasks:
+    - name: Installer Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Démarrer Docker
+      systemd:
+        name: docker
+        state: started
+
+    - name: Lancer le conteneur HTTP (NGINX)
+      command: docker run -d -p 8080:80 --name http-container nginx:1.27
+
+    - name: Lancer le conteneur PHP-FPM
+      command: docker run -d --name php-container php:7.4-fpm
+
+    - name: Lancer le conteneur de base de données
+      command: docker run -d --name db-container -e MYSQL_ROOT_PASSWORD=rootpassword -e MYSQL_DATABASE=wordpress mysql:5.7
+
+    - name: Lancer le conteneur WordPress
+      command: docker run -d --name wordpress-container -e WORDPRESS_DB_HOST=db-container -e WORDPRESS_DB_USER=root -e WORDPRESS_DB_PASSWORD=rootpassword -e WORDPRESS_DB_NAME=wordpress -p 8081:80 wordpress
